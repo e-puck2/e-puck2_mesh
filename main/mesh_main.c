@@ -425,6 +425,41 @@ void app_main(void)
 	} else {
 		ESP_ERROR_CHECK(esp_mesh_fix_root(true));
 	}	
+	
+	/* RSSI parameters */
+	// The RSSI threshold can be adapted to your needs in order to increase/decrease the distance at which the robots will connect to each other or will connect to the router.
+	// For example to find a parent you need to set the "mesh_switch_parent_t.select_rssi" threshold: this is the starting threshold, parents with lower RSSI will be discarded.
+	// The parent search is done more or less like this: 
+	// 1) start scanning with "select_rssi" threshold
+	// 2) scan for at most 5 times
+	// 2.1) if parent with correct RSSI found, then connect
+	// 2.2) if no parents found or parents with lower RSSI found, then decrease by 5 the threshold (at minimum "mesh_rssi_threshold_t.low") and goto 2
+	// 2.3) if minimum threshold (=mesh_rssi_threshold_t.low) reached, then restart from "select_rssi" and goto 2
+	// For instance with mesh_switch_parent_t.select_rssi=-80, mesh_rssi_threshold_t.low=-90, parent=-89:
+	// scan with rssi=-80 for 5 times => parent too distant (rssi=-89)
+	// scan with rssi=-85 for 5 times => parent too distant (rssi=-89)
+	// scan with rssi=-90 => parent found
+	// For more information refer to: https://github.com/espressif/esp-idf/blob/master/components/esp_wifi/include/esp_mesh_internal.h#L44
+	// and to: https://github.com/espressif/esp-idf/blob/master/components/esp_wifi/include/esp_mesh_internal.h#L54
+	/*
+	mesh_switch_parent_t default_params;
+	esp_mesh_get_switch_parent_paras(&default_params);
+	ESP_LOGI(MESH_TAG, "duration_ms=%d", default_params.duration_ms);
+	ESP_LOGI(MESH_TAG, "cnx_rssi=%d", default_params.cnx_rssi);
+	ESP_LOGI(MESH_TAG, "select_rssi=%d", default_params.select_rssi);
+	ESP_LOGI(MESH_TAG, "switch_rssi=%d", default_params.switch_rssi);
+	ESP_LOGI(MESH_TAG, "backoff_rssi=%d", default_params.backoff_rssi);	
+	default_params.select_rssi = -45;
+	esp_mesh_set_switch_parent_paras(&default_params);	
+	mesh_rssi_threshold_t default_threshold;
+	esp_mesh_get_rssi_threshold(&default_threshold);
+	ESP_LOGI(MESH_TAG, "high=%d", default_threshold.high);
+	ESP_LOGI(MESH_TAG, "medium=%d", default_threshold.medium);
+	ESP_LOGI(MESH_TAG, "low=%d", default_threshold.low);	
+	default_threshold.low = -55;
+	esp_mesh_set_rssi_threshold(&default_threshold);	
+	*/
+	
     /* mesh softAP */
     ESP_ERROR_CHECK(esp_mesh_set_ap_authmode(CONFIG_MESH_AP_AUTHMODE));
     cfg.mesh_ap.max_connection = CONFIG_MESH_AP_CONNECTIONS;
@@ -435,4 +470,8 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_mesh_start());
     ESP_LOGI(MESH_TAG, "mesh starts successfully, heap:%d, %s\n",  esp_get_free_heap_size(),
              esp_mesh_is_root_fixed() ? "root fixed" : "root not fixed");
+			 
+
+	
+	
 }
