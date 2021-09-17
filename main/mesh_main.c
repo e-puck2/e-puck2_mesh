@@ -439,9 +439,10 @@ void app_main(void)
 	// scan with rssi=-80 for 5 times => parent too distant (rssi=-89)
 	// scan with rssi=-85 for 5 times => parent too distant (rssi=-89)
 	// scan with rssi=-90 => parent found
+	// It's worth notice that these thresholds are used when for network formation (scanning and connecting) and not for disconnection between nodes.
+	// This means that once two nodes are connected, they can communicate at a larger distance, independently of these thresholds values.
 	// For more information refer to: https://github.com/espressif/esp-idf/blob/master/components/esp_wifi/include/esp_mesh_internal.h#L44
 	// and to: https://github.com/espressif/esp-idf/blob/master/components/esp_wifi/include/esp_mesh_internal.h#L54
-	/*
 	mesh_switch_parent_t default_params;
 	esp_mesh_get_switch_parent_paras(&default_params);
 	ESP_LOGI(MESH_TAG, "duration_ms=%d", default_params.duration_ms);
@@ -450,15 +451,20 @@ void app_main(void)
 	ESP_LOGI(MESH_TAG, "switch_rssi=%d", default_params.switch_rssi);
 	ESP_LOGI(MESH_TAG, "backoff_rssi=%d", default_params.backoff_rssi);	
 	default_params.select_rssi = -45;
-	esp_mesh_set_switch_parent_paras(&default_params);	
+	//default_params.switch_rssi = -45;
+	//default_params.cnx_rssi = -45;
+	//default_params.duration_ms = 5000; // The minimal value here is 5000
+	//default_params.backoff_rssi = -45;
+	ESP_ERROR_CHECK(esp_mesh_set_switch_parent_paras(&default_params));		
 	mesh_rssi_threshold_t default_threshold;
 	esp_mesh_get_rssi_threshold(&default_threshold);
 	ESP_LOGI(MESH_TAG, "high=%d", default_threshold.high);
-	ESP_LOGI(MESH_TAG, "medium=%d", default_threshold.medium);
-	ESP_LOGI(MESH_TAG, "low=%d", default_threshold.low);	
-	default_threshold.low = -55;
-	esp_mesh_set_rssi_threshold(&default_threshold);	
-	*/
+	//ESP_LOGI(MESH_TAG, "medium=%d", default_threshold.medium);
+	//ESP_LOGI(MESH_TAG, "low=%d", default_threshold.low);	
+	default_threshold.low = -45;
+	default_threshold.medium = -45;
+	default_threshold.high = -45;
+	ESP_ERROR_CHECK(esp_mesh_set_rssi_threshold(&default_threshold));
 	
     /* mesh softAP */
     ESP_ERROR_CHECK(esp_mesh_set_ap_authmode(CONFIG_MESH_AP_AUTHMODE));
